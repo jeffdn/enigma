@@ -1,0 +1,10 @@
+[package]
+name = "enigma-cipher"
+version = "0.0.1"
+authors = ["Jeff Nettleton <jeffdn@gmail.com>"]
+
+description = "An implementation of the legendary German Enigma cipher"
+repository = "https://gitlab.com/jeffdn/enigma-cipher"
+documentation = "https://docs.rs/enigma-cipher/"
+readme = "README.md"
+license = "MIT"
