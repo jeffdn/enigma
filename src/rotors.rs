@@ -7,14 +7,13 @@
 // file may not be copied, modified, or distributed except according to those
 // terms
 
-fn _calculate_start_offset(ring_setting: char, init_position: char) -> u8 {
+fn _calculate_start_offset(input: char) -> u8 {
     // match start {
     //     'A' => ('Z' as u8) - 65,
     //     _   => (start as u8) - 65,
     // }
-    let ring_offset = (ring_setting as u8) - 65;
-    let init_offset = (init_position as u8) - 65;
-    _get_offset(ring_offset, init_offset)
+    //
+    (input as u8) - 65
 }
 
 fn _calculate_input_offset(input: char, offset: u8) -> char {
@@ -27,16 +26,20 @@ fn _calculate_input_offset(input: char, offset: u8) -> char {
     input_pos as char
 }
 
-fn _calculate_output_offset(input: char, offset: u8) -> char {
-    let input_val: i8 = input as i8;
-    let offset: i8 = offset as i8 * -1;
-    // let offset: u8 = ((offset as i8 * -1) + 25) as u8;
-    let input_pos: i8 = match (input_val + offset) < 65 {
-        true    => ((input_val + offset) + 26),
+fn _calculate_output_offset(input: char, cur_offset: u8, init_offset: u8) -> char {
+    let input_val = input as u8;
+    let offset = cur_offset + init_offset;
+    let offset = match offset > 25 {
+        true  => offset - 26,
+        false => offset,
+    };
+
+    let input_pos = match (input_val + offset) > 90 {
+        true    => ((input_val + offset) - 26),
         false   => input_val + offset,
     };
 
-    (input_pos as u8) as char
+    input_pos as char
 }
 
 fn _new_offset(cur_offset: u8) -> u8 {
@@ -135,13 +138,13 @@ impl RotorEncode for RotorI {
     fn new(ring_setting: char, init_position: char) -> Self {
         Self {
             ring_setting: ring_setting,
-            init_offset: 0, //_calculate_start_offset(ring_setting),
-            cur_offset: _calculate_start_offset(ring_setting, init_position),
+            init_offset: _calculate_start_offset(ring_setting),
+            cur_offset: _calculate_start_offset(init_position),
         }
     }
 
     fn transpose_in(&self, input: char) -> char {
-        let offset_input = _calculate_input_offset(input, self.get_offset());
+        let offset_input = _calculate_input_offset(input, self.cur_offset);
 
         let computed = match offset_input as char {
             'A' => 'E',
@@ -173,11 +176,11 @@ impl RotorEncode for RotorI {
             _   => ' ',
         };
 
-        _calculate_output_offset(computed, self.get_offset())
+        _calculate_output_offset(computed, self.cur_offset, self.init_offset)
     }
 
     fn transpose_out(&self, input: char) -> char {
-        let offset_input = _calculate_input_offset(input, self.get_offset());
+        let offset_input = _calculate_input_offset(input, self.cur_offset);
 
         let computed = match offset_input as char {
             'E' => 'A',
@@ -209,20 +212,20 @@ impl RotorEncode for RotorI {
             _   => ' ',
         };
 
-        _calculate_output_offset(computed, self.get_offset())
+        _calculate_output_offset(computed, self.cur_offset, self.init_offset)
     }
 
     fn at_notch(&self) -> bool {
-        println!("rotor i   - offset: {}", self.get_offset());
-        (65 + self.get_offset()) as char == 'Q'
+        println!("rotor i   - offset: {}", self.cur_offset);
+        (65 + self.cur_offset) as char == 'Q'
     }
 
     fn advance(&mut self)  {
-        self.cur_offset = _new_offset(self.get_offset());
+        self.cur_offset = _new_offset(self.cur_offset);
     }
 
     fn position(&self) -> char {
-        _calculate_input_offset(self.ring_setting, self.get_offset())
+        _calculate_input_offset(self.ring_setting, self.cur_offset)
     }
 
     fn get_offset(&self) -> u8 {
@@ -240,13 +243,13 @@ impl RotorEncode for RotorII {
     fn new(ring_setting: char, init_position: char) -> Self {
         RotorII {
             ring_setting: ring_setting,
-            init_offset: 0, //_calculate_start_offset(ring_setting),
-            cur_offset: _calculate_start_offset(ring_setting, init_position),
+            init_offset: _calculate_start_offset(ring_setting),
+            cur_offset: _calculate_start_offset(init_position),
         }
     }
 
     fn transpose_in(&self, input: char) -> char {
-        let offset_input = _calculate_input_offset(input, self.get_offset());
+        let offset_input = _calculate_input_offset(input, self.cur_offset);
 
         let computed = match offset_input as char {
             'A' => 'A',
@@ -278,11 +281,11 @@ impl RotorEncode for RotorII {
             _   => ' ',
         };
 
-        _calculate_output_offset(computed, self.get_offset())
+        _calculate_output_offset(computed, self.cur_offset, self.init_offset)
     }
 
     fn transpose_out(&self, input: char) -> char {
-        let offset_input = _calculate_input_offset(input, self.get_offset());
+        let offset_input = _calculate_input_offset(input, self.cur_offset);
 
         let computed = match offset_input as char {
             'A' => 'A',
@@ -314,20 +317,20 @@ impl RotorEncode for RotorII {
             _   => ' ',
         };
 
-        _calculate_output_offset(computed, self.get_offset())
+        _calculate_output_offset(computed, self.cur_offset, self.init_offset)
     }
 
     fn at_notch(&self) -> bool {
-        println!("rotor ii  - offset: {}", self.get_offset());
-        (65 + self.get_offset()) as char == 'E'
+        println!("rotor ii  - offset: {}", self.cur_offset);
+        (65 + self.cur_offset) as char == 'E'
     }
 
     fn advance(&mut self)  {
-        self.cur_offset = _new_offset(self.get_offset());
+        self.cur_offset = _new_offset(self.cur_offset);
     }
 
     fn position(&self) -> char {
-        _calculate_input_offset(self.ring_setting, self.get_offset())
+        _calculate_input_offset(self.ring_setting, self.cur_offset)
     }
 
     fn get_offset(&self) -> u8 {
@@ -345,13 +348,13 @@ impl RotorEncode for RotorIII {
     fn new(ring_setting: char, init_position: char) -> Self {
         Self {
             ring_setting: ring_setting,
-            init_offset: 0, //_calculate_start_offset(ring_setting),
-            cur_offset: _calculate_start_offset(ring_setting, init_position),
+            init_offset: _calculate_start_offset(ring_setting),
+            cur_offset: _calculate_start_offset(init_position),
         }
     }
 
     fn transpose_in(&self, input: char) -> char {
-        let offset_input = _calculate_input_offset(input, self.get_offset());
+        let offset_input = _calculate_input_offset(input, self.cur_offset);
 
         let computed = match offset_input as char {
             'A' => 'B',
@@ -383,11 +386,11 @@ impl RotorEncode for RotorIII {
             _   => ' ',
         };
 
-        _calculate_output_offset(computed, self.get_offset())
+        _calculate_output_offset(computed, self.cur_offset, self.init_offset)
     }
 
     fn transpose_out(&self, input: char) -> char {
-        let offset_input = _calculate_input_offset(input, self.get_offset());
+        let offset_input = _calculate_input_offset(input, self.cur_offset);
 
         let computed = match offset_input as char {
             'B' => 'A',
@@ -419,20 +422,20 @@ impl RotorEncode for RotorIII {
             _   => ' ',
         };
 
-        _calculate_output_offset(computed, self.get_offset())
+        _calculate_output_offset(computed, self.cur_offset, self.init_offset)
     }
 
     fn at_notch(&self) -> bool {
-        println!("rotor iii - offset: {}", self.get_offset());
-        (65 + self.get_offset()) as char == 'V'
+        println!("rotor iii - offset: {}", self.cur_offset);
+        (65 + self.cur_offset) as char == 'V'
     }
 
     fn advance(&mut self)  {
-        self.cur_offset = _new_offset(self.get_offset());
+        self.cur_offset = _new_offset(self.cur_offset);
     }
 
     fn position(&self) -> char {
-        _calculate_input_offset(self.ring_setting, self.get_offset())
+        _calculate_input_offset(self.ring_setting, self.cur_offset)
     }
 
     fn get_offset(&self) -> u8 {
@@ -454,9 +457,14 @@ mod test {
 
     #[test]
     fn test_output_offset() {
-        assert_eq!('Z', _calculate_output_offset('A', 1));
-        assert_eq!('Y', _calculate_output_offset('Z', 1));
-        assert_eq!('K', _calculate_output_offset('S', 8));
-        assert_eq!('X', _calculate_output_offset('B', 4));
+        assert_eq!('Z', _calculate_output_offset('A', 1, 0));
+        assert_eq!('Y', _calculate_output_offset('Z', 1, 0));
+        assert_eq!('K', _calculate_output_offset('S', 8, 0));
+        assert_eq!('X', _calculate_output_offset('B', 4, 0));
+
+        assert_eq!('A', _calculate_output_offset('A', 1, 1));
+        assert_eq!('B', _calculate_output_offset('Z', 1, 3));
+        assert_eq!('O', _calculate_output_offset('S', 8, 4));
+        assert_eq!('Y', _calculate_output_offset('B', 4, 1));
     }
 }

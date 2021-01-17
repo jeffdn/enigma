@@ -191,4 +191,24 @@ mod test {
     //     let expected_settings = vec!['F', 'O', 'S'];
     //     assert_eq!(expected_settings, machine.settings());
     // }
+
+    #[test]
+    fn test_ring_settings() {
+        let mut machine = ArmyEnigma::new(
+            RotorI::new('B', 'A'),
+            RotorI::new('B', 'A'),
+            RotorI::new('B', 'A'),
+            ReflectorB{},
+        );
+
+        let input: Vec<char> = vec!['A', 'A', 'A'];
+        let expected: Vec<char> = vec!['T', 'B', 'U'];
+        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char)).collect();
+
+        assert_eq!(expected, output);
+
+        let expected_settings = vec!['F', 'O', 'S'];
+        let expected_settings = vec!['A', 'A', 'D'];
+        assert_eq!(expected_settings, machine.settings());
+    }
 }
