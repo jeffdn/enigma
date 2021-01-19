@@ -173,24 +173,24 @@ mod test {
         assert_eq!(expected_settings, machine.settings());
     }
 
-    // #[test]
-    // fn test_bbb_fog() {
-    //     let mut machine = ArmyEnigma::new(
-    //         RotorI::new('B', 'F'),
-    //         RotorII::new('B', 'O'),
-    //         RotorIII::new('B', 'G'),
-    //         ReflectorB{},
-    //     );
+    #[test]
+    fn test_bbb_fog() {
+        let mut machine = ArmyEnigma::new(
+            RotorI::new('B', 'F'),
+            RotorII::new('B', 'O'),
+            RotorIII::new('B', 'G'),
+            ReflectorB{},
+        );
 
-    //     let input: Vec<char> = vec!['A', 'D', 'V', 'A', 'N', 'C', 'E', 'M', 'I', 'N', 'S', 'K'];
-    //     let expected: Vec<char> = vec!['P', 'Y', 'M', 'B', 'X', 'D', 'Y', 'G', 'L', 'J', 'V', 'H'];
-    //     let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char)).collect();
+        let input: Vec<char> = vec!['A', 'D', 'V', 'A', 'N', 'C', 'E', 'M', 'I', 'N', 'S', 'K'];
+        let expected: Vec<char> = vec!['Y', 'X', 'L', 'E', 'O', 'P', 'V', 'F', 'D', 'T', 'O', 'Y'];
+        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char)).collect();
 
-    //     assert_eq!(expected, output);
+        assert_eq!(expected, output);
 
-    //     let expected_settings = vec!['F', 'O', 'S'];
-    //     assert_eq!(expected_settings, machine.settings());
-    // }
+        let expected_settings = vec!['F', 'O', 'S'];
+        assert_eq!(expected_settings, machine.settings());
+    }
 
     #[test]
     fn test_ring_settings() {
@@ -207,7 +207,6 @@ mod test {
 
         assert_eq!(expected, output);
 
-        let expected_settings = vec!['F', 'O', 'S'];
         let expected_settings = vec!['A', 'A', 'D'];
         assert_eq!(expected_settings, machine.settings());
     }
