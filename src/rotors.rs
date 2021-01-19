@@ -8,22 +8,7 @@
 // terms
 
 fn _calculate_start_offset(input: char) -> u8 {
-    // match start {
-    //     'A' => ('Z' as u8) - 65,
-    //     _   => (start as u8) - 65,
-    // }
-    //
     (input as u8) - 65
-}
-
-fn _calculate_output_offset(input: char, offset: u8, _foo: u8) -> char {
-    let input_val = input as u8;
-    let input_pos = match (input_val + offset) > 90 {
-        true  => ((input_val + offset) - 26),
-        false => input_val + offset,
-    };
-
-    input_pos as char
 }
 
 fn _shift_char_offset(input: char, offset: i8) -> char {
@@ -41,7 +26,6 @@ fn _shift_char_offset(input: char, offset: i8) -> char {
 
 fn _new_offset(cur_offset: u8) -> u8 {
     let step = 1;
-    println!("{} + {} = {}", cur_offset, step, cur_offset + step);
     match cur_offset + step > 25 {
         true  => cur_offset + step - 25,
         false => cur_offset + step,
@@ -57,26 +41,6 @@ fn _get_offset(init_offset: u8, cur_offset: u8) -> i8 {
         return ((init_offset + 26) - cur_offset) as i8;
     }
 }
-
-// pub struct Rotor<T> {
-//     rotor: T,
-// }
-//
-// impl<T: RotorEncode> Rotor<T> {
-//     pub fn new(rotor: T) -> Self {
-//         Rotor {
-//             rotor: rotor,
-//         }
-//     }
-//
-//     pub fn transpose_in(&mut self, input: char) -> char {
-//         self.rotor.transpose_in(input)
-//     }
-//
-//     pub fn advance(&mut self) -> bool {
-//         self.rotor.advance(extra_step)
-//     }
-// }
 
 pub trait RotorEncode {
     fn new(ring_setting: char, init_position: char) -> Self;
@@ -216,7 +180,6 @@ impl RotorEncode for RotorI {
     }
 
     fn at_notch(&self) -> bool {
-        println!("rotor i   - offset: {}", self.cur_offset);
         (65 + self.cur_offset) as char == 'Q'
     }
 
@@ -321,7 +284,6 @@ impl RotorEncode for RotorII {
     }
 
     fn at_notch(&self) -> bool {
-        println!("rotor ii  - offset: {}", self.cur_offset);
         (65 + self.cur_offset) as char == 'E'
     }
 
@@ -426,7 +388,6 @@ impl RotorEncode for RotorIII {
     }
 
     fn at_notch(&self) -> bool {
-        println!("rotor iii - offset: {}", self.cur_offset);
         (65 + self.cur_offset) as char == 'V'
     }
 

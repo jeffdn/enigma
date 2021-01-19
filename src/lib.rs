@@ -51,19 +51,12 @@ impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> Enigma for Ar
         }
 
         let output = self.rotor3.transpose_in(input);
-        println!("rotor 3   - output:  {}", output);
         let output = self.rotor2.transpose_in(output);
-        println!("rotor 2   - output:  {}", output);
         let output = self.rotor1.transpose_in(output);
-        println!("rotor 1   - output:  {}", output);
         let output = self.reflector.transpose(output);
-        println!("reflektor - output:  {}", output);
         let output = self.rotor1.transpose_out(output);
-        println!("rotor 1   - output:  {}", output);
         let output = self.rotor2.transpose_out(output);
-        println!("rotor 2   - output:  {}", output);
         let output = self.rotor3.transpose_out(output);
-        println!("rotor 3   - output:  {}", output);
 
         output
     }
