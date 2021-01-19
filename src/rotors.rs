@@ -448,7 +448,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_ring_settings() {
+    fn test_transpose_in() {
         let rotor = RotorI::new('A', 'A');
         assert_eq!(rotor.transpose_in('A'), 'E');
 
@@ -460,5 +460,20 @@ mod test {
 
         let rotor = RotorI::new('F', 'Y');
         assert_eq!(rotor.transpose_in('A'), 'W');
+    }
+
+    #[test]
+    fn test_transpose_out() {
+        let rotor = RotorI::new('A', 'A');
+        assert_eq!(rotor.transpose_out('E'), 'A');
+
+        let rotor = RotorI::new('A', 'B');
+        assert_eq!(rotor.transpose_out('J'), 'A');
+
+        let rotor = RotorI::new('B', 'A');
+        assert_eq!(rotor.transpose_out('K'), 'A');
+
+        let rotor = RotorI::new('F', 'Y');
+        assert_eq!(rotor.transpose_out('W'), 'A');
     }
 }
