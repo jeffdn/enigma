@@ -9,3 +9,6 @@ repository = "https://gitlab.com/jeffdn/enigma-cipher"
 documentation = "https://docs.rs/enigma-cipher/"
 readme = "README.md"
 license = "MIT"
+
+[dependencies]
+enigma-cipher-macros = { path = "./enigma-cipher-macros" }

@@ -7,6 +7,8 @@
 // file may not be copied, modified, or distributed except according to those
 // terms
 
+use enigma_cipher_macros::RotorTools;
+
 fn _calculate_start_offset(input: char) -> u8 {
     (input as u8) - 65
 }
@@ -24,29 +26,14 @@ fn _shift_char_offset(input: char, offset: i8) -> char {
     }
 }
 
-fn _new_offset(cur_offset: u8) -> u8 {
-    let step = 1;
-    match cur_offset + step > 25 {
-        true  => cur_offset + step - 25,
-        false => cur_offset + step,
-    }
-}
-
-fn _get_offset(init_offset: u8, cur_offset: u8) -> i8 {
-    if cur_offset == init_offset {
-        return 0;
-    } else if cur_offset < init_offset {
-        return (init_offset - cur_offset) as i8;
-    } else {
-        return ((init_offset + 26) - cur_offset) as i8;
-    }
-}
-
-pub trait RotorEncode {
+pub trait RotorCore {
     fn new(ring_setting: char, init_position: char) -> Self;
     fn transpose_in(&self, input: char) -> char;
     fn transpose_out(&self, input: char) -> char;
     fn at_notch(&self) -> bool;
+}
+
+pub trait RotorTools {
     fn advance(&mut self);
     fn position(&self) -> char;
     fn get_offset(&self) -> i8;
@@ -92,13 +79,14 @@ impl Reflector for ReflectorB {
     }
 }
 
+#[derive(RotorTools)]
 pub struct RotorI {
     ring_setting: char,
     init_offset: u8,
     cur_offset: u8,
 }
 
-impl RotorEncode for RotorI {
+impl RotorCore for RotorI {
     fn new(ring_setting: char, init_position: char) -> Self {
         Self {
             ring_setting: ring_setting,
@@ -182,27 +170,16 @@ impl RotorEncode for RotorI {
     fn at_notch(&self) -> bool {
         (65 + self.cur_offset) as char == 'Q'
     }
-
-    fn advance(&mut self)  {
-        self.cur_offset = _new_offset(self.cur_offset);
-    }
-
-    fn position(&self) -> char {
-        _shift_char_offset(self.ring_setting, self.get_offset() * -1)
-    }
-
-    fn get_offset(&self) -> i8 {
-        _get_offset(self.init_offset, self.cur_offset)
-    }
 }
 
+#[derive(RotorTools)]
 pub struct RotorII {
     ring_setting: char,
     init_offset: u8,
     cur_offset: u8,
 }
 
-impl RotorEncode for RotorII {
+impl RotorCore for RotorII {
     fn new(ring_setting: char, init_position: char) -> Self {
         RotorII {
             ring_setting: ring_setting,
@@ -286,27 +263,16 @@ impl RotorEncode for RotorII {
     fn at_notch(&self) -> bool {
         (65 + self.cur_offset) as char == 'E'
     }
-
-    fn advance(&mut self)  {
-        self.cur_offset = _new_offset(self.cur_offset);
-    }
-
-    fn position(&self) -> char {
-        _shift_char_offset(self.ring_setting, self.get_offset() * -1)
-    }
-
-    fn get_offset(&self) -> i8 {
-        _get_offset(self.init_offset, self.cur_offset)
-    }
 }
 
+#[derive(RotorTools)]
 pub struct RotorIII {
     ring_setting: char,
     init_offset: u8,
     cur_offset: u8,
 }
 
-impl RotorEncode for RotorIII {
+impl RotorCore for RotorIII {
     fn new(ring_setting: char, init_position: char) -> Self {
         Self {
             ring_setting: ring_setting,
@@ -389,18 +355,6 @@ impl RotorEncode for RotorIII {
 
     fn at_notch(&self) -> bool {
         (65 + self.cur_offset) as char == 'V'
-    }
-
-    fn advance(&mut self)  {
-        self.cur_offset = _new_offset(self.cur_offset);
-    }
-
-    fn position(&self) -> char {
-        _shift_char_offset(self.ring_setting, self.get_offset() * -1)
-    }
-
-    fn get_offset(&self) -> i8 {
-        _get_offset(self.init_offset, self.cur_offset)
     }
 }
 
