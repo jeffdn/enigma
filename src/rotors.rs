@@ -9,10 +9,6 @@
 
 use enigma_cipher_macros::RotorEncode;
 
-fn _calculate_start_offset(input: char) -> u8 {
-    (input as u8) - 65
-}
-
 fn _shift_char_offset(input: char, offset: i8) -> char {
     let input_val = input as i8;
     let shifted: i8 = input_val + offset;
