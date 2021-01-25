@@ -203,4 +203,28 @@ mod test {
         let expected_settings = vec!['A', 'A', 'D'];
         assert_eq!(expected_settings, machine.settings());
     }
+
+    #[test]
+    fn test_mirrors_correctly() {
+        let mut machine = ArmyEnigma::new(
+            RotorIV::new('L', 'F'),
+            RotorII::new('E', 'I'),
+            RotorV::new('G', 'B'),
+            ReflectorA{},
+        );
+
+        let initial: Vec<char> = vec!['A', 'D', 'V', 'A', 'N', 'C', 'E', 'M', 'I', 'N', 'S', 'K'];
+        let encoded: Vec<char> = initial.clone().into_iter().map(|in_char| machine.keypress(in_char)).collect();
+
+        let mut machine = ArmyEnigma::new(
+            RotorIV::new('L', 'F'),
+            RotorII::new('E', 'I'),
+            RotorV::new('G', 'B'),
+            ReflectorA{},
+        );
+
+        let decoded: Vec<char> = encoded.into_iter().map(|in_char| machine.keypress(in_char)).collect();
+
+        assert_eq!(initial, decoded);
+    }
 }

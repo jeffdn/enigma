@@ -47,9 +47,7 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
     let key_tokens: Vec<char> = key_ordering.chars().collect();
     let key_space: HashSet<char> = HashSet::from_iter(key_tokens.clone().into_iter());
 
-    if key_space.len() != 26 {
-        assert!(false, "Expected 26 unique characters in #[key_ordering(...)]");
-    }
+    assert!(key_space.len() == 26, "Expected 26 unique characters in #[key_ordering(...)]");
 
     let mut transpose_in: proc_macro2::TokenStream = quote!();
     let mut transpose_out: proc_macro2::TokenStream = quote!();
@@ -181,9 +179,7 @@ fn impl_reflector(ast: &syn::DeriveInput) -> TokenStream {
     let key_tokens: Vec<char> = key_ordering.chars().collect();
     let key_space: HashSet<char> = HashSet::from_iter(key_tokens.clone().into_iter());
 
-    if key_space.len() != 26 {
-        assert!(false, "Expected 26 unique characters in #[key_ordering(...)]");
-    }
+    assert!(key_space.len() == 26, "Expected 26 unique characters in #[key_ordering(...)]");
 
     let mut transpose: proc_macro2::TokenStream = quote!();
 
