@@ -9,7 +9,7 @@
 
 pub mod rotors;
 
-use rotors::{Reflector, RotorCore, RotorTools};
+use rotors::{Reflector, RotorEncode};
 
 pub trait Enigma {
     fn keypress(&mut self, input: char) -> char;
@@ -23,7 +23,7 @@ pub struct ArmyEnigma<A, B, C, D> {
     reflector: D,
 }
 
-impl<A: RotorCore + RotorTools, B: RotorCore + RotorTools, C: RotorCore + RotorTools, D: Reflector> ArmyEnigma<A, B, C, D> {
+impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> ArmyEnigma<A, B, C, D> {
     pub fn new(rotor1: A, rotor2: B, rotor3: C, reflector: D) -> Self {
         ArmyEnigma {
             rotor1: rotor1,
@@ -34,7 +34,7 @@ impl<A: RotorCore + RotorTools, B: RotorCore + RotorTools, C: RotorCore + RotorT
     }
 }
 
-impl<A: RotorCore + RotorTools, B: RotorCore + RotorTools, C: RotorCore + RotorTools, D: Reflector> Enigma for ArmyEnigma<A, B, C, D> {
+impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> Enigma for ArmyEnigma<A, B, C, D> {
     fn keypress(&mut self, input: char) -> char {
         let right_at_notch = self.rotor3.at_notch();
         let middle_at_notch = self.rotor2.at_notch();
