@@ -26,9 +26,6 @@ fn _shift_char_offset(input: char, offset: i8) -> char {
     }
 }
 
-pub trait RotorCore {
-}
-
 pub trait RotorEncode {
     fn new(ring_setting: char, init_position: char) -> Self;
     fn transpose_in(&self, input: char) -> char;
