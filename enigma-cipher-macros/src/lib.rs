@@ -24,13 +24,13 @@ fn extract_attribute(tokens: &proc_macro2::TokenStream) -> String {
 fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
     let name = &ast.ident;
     let mut key_ordering: String = "empty".into();
-    let mut notches: String = "empty".into();
+    let mut notch_tokens: String = "empty".into();
 
     for attr in ast.attrs.iter() {
         let attr_name = attr.path.get_ident().unwrap().to_string();
         match &*attr_name {
             "key_ordering" => key_ordering = extract_attribute(&attr.tokens),
-            "notches" => notches = extract_attribute(&attr.tokens),
+            "notches" => notch_tokens = extract_attribute(&attr.tokens),
             _ => {},
         };
     }
@@ -55,6 +55,14 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
         });
     }
 
+    let mut notch_map: proc_macro2::TokenStream = quote!();
+
+    for x in notch_tokens.chars() {
+        notch_map.extend(quote! {
+            #x => true,
+        });
+    }
+
     let gen = quote! {
         impl RotorEncode for #name {
             fn new(ring_setting: char, init_position: char) -> Self {
@@ -70,7 +78,7 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
 
                 let computed = match offset_input as char {
                     #transpose_in
-                    _   => ' ',
+                    _  => ' ',
                 };
 
                 _shift_char_offset(computed, self.get_offset())
@@ -81,21 +89,24 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
 
                 let computed = match offset_input as char {
                     #transpose_out
-                    _   => ' ',
+                    _  => ' ',
                 };
 
                 _shift_char_offset(computed, self.get_offset())
             }
 
             fn at_notch(&self) -> bool {
-                #notches.contains((65 + self.cur_offset) as char)
+                match (65 + self.cur_offset) as char {
+                    #notch_map
+                    _ => false,
+                }
             }
 
             fn advance(&mut self)  {
                 let step = 1;
 
                 self.cur_offset = match self.cur_offset + step > 25 {
-                    true  => self.cur_offset + step - 25,
+                    true => self.cur_offset + step - 25,
                     false => self.cur_offset + step,
                 }
             }
@@ -118,33 +129,3 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
 
     gen.into()
 }
-
-// #[proc_macro_attribute]
-// pub fn rotor(attrs: TokenStream, input: TokenStream) -> TokenStream {
-//     let args: Vec<&str> = attrs.to_string().split(',').map(|x| x.trim()).collect();
-//
-//     if args.count() != 2 {
-//         assert!(false, "Expected two arguments to #[rotor(..., ...)]");
-//     }
-//
-//     let key_list: Vec<char> = args[0].iter().cloned().collect();
-//     let key_space: HashSet<char> = HashSet::from_iter(key_list.iter().cloned());
-//
-//     if key_space.count() != 26 {
-//         assert!(false, "The first argument to #[rotor(..., ...)] needs 26 unique characters");
-//     }
-//
-//     let key_map: HashMap<char, char> = HashMap::from_iter(key_list.into_iter().enumerate().map(|i, x| (((i as u8) + 65) as char, x)));
-//
-//     let notches: Vec<char> = args[1].iter().cloned().collect();
-//
-//     let order_cnt = order.into_iter().count();
-//     let notches_cnt = order.into_iter().count();
-//
-//     let gen = quote! {
-//
-//     let order_ast = syn::parse(order).unwrap();
-//     let notches_ast = syn::parse(notches).unwrap();
-//
-//     impl_rotor(&order_ast, &notches_ast)
-// }
