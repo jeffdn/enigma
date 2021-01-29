@@ -80,28 +80,18 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
                 }
             }
 
-            fn _apply_offset(&self, shifted: i8) -> char {
-                if shifted > 90 {
-                    return ((shifted - 26) as u8) as char;
-                } else if shifted < 65 {
-                    return ((shifted + 26) as u8) as char;
-                } else {
-                    return (shifted as u8) as char;
-                }
-            }
-
             fn _shift_input(&self, input: char) -> char {
                 let offset: i8 = self.get_offset() * -1;
                 let input_val = input as i8;
 
-                self._apply_offset(input_val + offset)
+                _apply_offset(input_val + offset)
             }
 
             fn _shift_output(&self, output: char) -> char {
                 let offset: i8 = self.get_offset();
                 let output_val = output as i8;
 
-                self._apply_offset(output_val + offset)
+                _apply_offset(output_val + offset)
             }
 
             fn transpose_in(&self, input: char) -> char {
