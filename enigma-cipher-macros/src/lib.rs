@@ -7,14 +7,18 @@
 // file may not be copied, modified, or distributed except according to those
 // terms.
 
-extern crate proc_macro;
-
 use std::collections::HashSet;
 use std::iter::FromIterator;
 use proc_macro::TokenStream;
 use proc_macro2;
 use quote::quote;
 use syn;
+
+fn check_keyspace(key_tokens: &Vec<char>) {
+    let keyspace: HashSet<char> = HashSet::from_iter(key_tokens.iter().map(|c| *c));
+    let expected: HashSet<char> = HashSet::from_iter(String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZ").chars());
+    assert_eq!(expected, keyspace, "Expected 26 unique characters in #[key_ordering(...)]");
+}
 
 fn extract_attribute(tokens: &proc_macro2::TokenStream) -> String {
     let attr_str = &tokens.to_string();
@@ -45,9 +49,8 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
     }
 
     let key_tokens: Vec<char> = key_ordering.chars().collect();
-    let key_space: HashSet<char> = HashSet::from_iter(key_tokens.clone().into_iter());
 
-    assert!(key_space.len() == 26, "Expected 26 unique characters in #[key_ordering(...)]");
+    check_keyspace(&key_tokens);
 
     let mut transpose_in: proc_macro2::TokenStream = quote!();
     let mut transpose_out: proc_macro2::TokenStream = quote!();
@@ -167,9 +170,8 @@ fn impl_reflector(ast: &syn::DeriveInput) -> TokenStream {
     }
 
     let key_tokens: Vec<char> = key_ordering.chars().collect();
-    let key_space: HashSet<char> = HashSet::from_iter(key_tokens.clone().into_iter());
 
-    assert!(key_space.len() == 26, "Expected 26 unique characters in #[key_ordering(...)]");
+    check_keyspace(&key_tokens);
 
     let mut transpose: proc_macro2::TokenStream = quote!();
 
