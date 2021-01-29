@@ -27,6 +27,26 @@ fn extract_attribute(tokens: &proc_macro2::TokenStream) -> String {
     attr_str.trim_matches(to_trim).into()
 }
 
+fn generate_key_mappings(key_ordering: String) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+    let mut transpose_in: proc_macro2::TokenStream = quote!();
+    let mut transpose_out: proc_macro2::TokenStream = quote!();
+
+    let key_tokens: Vec<char> = key_ordering.chars().collect();
+    check_keyspace(&key_tokens);
+
+    for (i, ref x) in key_tokens.iter().enumerate() {
+        let mapped_char = ((i + 65) as u8) as char;
+        transpose_in.extend(quote! {
+            #mapped_char => #x,
+        });
+        transpose_out.extend(quote! {
+            #x => #mapped_char,
+        });
+    }
+
+    (transpose_in, transpose_out)
+}
+
 #[proc_macro_derive(RotorEncode, attributes(key_ordering, notches))]
 pub fn rotor_encode_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
@@ -48,22 +68,7 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
         };
     }
 
-    let key_tokens: Vec<char> = key_ordering.chars().collect();
-
-    check_keyspace(&key_tokens);
-
-    let mut transpose_in: proc_macro2::TokenStream = quote!();
-    let mut transpose_out: proc_macro2::TokenStream = quote!();
-
-    for (i, x) in key_tokens.into_iter().enumerate() {
-        let mapped_char = ((i + 65) as u8) as char;
-        transpose_in.extend(quote! {
-            #mapped_char => #x,
-        });
-        transpose_out.extend(quote! {
-            #x => #mapped_char,
-        });
-    }
+    let (transpose_in, transpose_out) = generate_key_mappings(key_ordering);
 
     let mut notch_map: proc_macro2::TokenStream = quote!();
 
@@ -169,18 +174,7 @@ fn impl_reflector(ast: &syn::DeriveInput) -> TokenStream {
         };
     }
 
-    let key_tokens: Vec<char> = key_ordering.chars().collect();
-
-    check_keyspace(&key_tokens);
-
-    let mut transpose: proc_macro2::TokenStream = quote!();
-
-    for (i, x) in key_tokens.into_iter().enumerate() {
-        let mapped_char = ((i + 65) as u8) as char;
-        transpose.extend(quote! {
-            #mapped_char => #x,
-        });
-    }
+    let (transpose, _) = generate_key_mappings(key_ordering);
 
     let gen = quote! {
         impl Reflector for #name {
