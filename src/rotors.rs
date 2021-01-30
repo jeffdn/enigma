@@ -7,7 +7,7 @@
 // file may not be copied, modified, or distributed except according to those
 // terms.
 
-use enigma_cipher_macros::{Reflector, RotorEncode};
+use enigma_cipher_macros::RotorEncode;
 
 fn _apply_offset(shifted: i8) -> char {
     if shifted > 90 {
@@ -18,22 +18,6 @@ fn _apply_offset(shifted: i8) -> char {
         return (shifted as u8) as char;
     }
 }
-
-pub trait Reflector {
-    fn transpose(&self, input: char) -> char;
-}
-
-#[derive(Reflector)]
-#[key_ordering(EJMZALYXVBWFCRQUONTSPIKHGD)]
-pub struct ReflectorA;
-
-#[derive(Reflector)]
-#[key_ordering(YRUHQSLDPXNGOKMIEBFZCWVJAT)]
-pub struct ReflectorB;
-
-#[derive(Reflector)]
-#[key_ordering(FVPJIAOYEDRZXWGCTKUQSBNMHL)]
-pub struct ReflectorC;
 
 pub trait RotorEncode {
     fn new(ring_setting: char, init_position: char) -> Self;

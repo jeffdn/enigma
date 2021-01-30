@@ -7,9 +7,13 @@
 // file may not be copied, modified, or distributed except according to those
 // terms.
 
+pub mod plugboard;
+pub mod reflectors;
 pub mod rotors;
 
-use rotors::{Reflector, RotorEncode};
+use plugboard::Plugboard;
+use reflectors::Reflector;
+use rotors::RotorEncode;
 
 use std::error::Error;
 use std::fmt;
@@ -43,6 +47,7 @@ fn _check_input(input: char) -> Result<char, EnigmaError> {
 
 pub trait Enigma {
     fn keypress(&mut self, input: char) -> Result<char, EnigmaError>;
+    fn plugboard_transpose(&self, input: char) -> char;
     fn settings(&self) -> Vec<char>;
 }
 
@@ -51,15 +56,17 @@ pub struct ArmyEnigma<A, B, C, D> {
     rotor2: B,
     rotor3: C,
     reflector: D,
+    plugboard: Option<Plugboard>,
 }
 
 impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> ArmyEnigma<A, B, C, D> {
-    pub fn new(rotor1: A, rotor2: B, rotor3: C, reflector: D) -> Self {
+    pub fn new(rotor1: A, rotor2: B, rotor3: C, reflector: D, plugboard: Option<Plugboard>) -> Self {
         ArmyEnigma {
             rotor1: rotor1,
             rotor2: rotor2,
             rotor3: rotor3,
             reflector: reflector,
+            plugboard: plugboard,
         }
     }
 }
@@ -84,15 +91,24 @@ impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> Enigma for Ar
             self.rotor1.advance();
         }
 
-        let output = self.rotor3.transpose_in(input);
+        let output = self.plugboard_transpose(input);
+        let output = self.rotor3.transpose_in(output);
         let output = self.rotor2.transpose_in(output);
         let output = self.rotor1.transpose_in(output);
         let output = self.reflector.transpose(output);
         let output = self.rotor1.transpose_out(output);
         let output = self.rotor2.transpose_out(output);
         let output = self.rotor3.transpose_out(output);
+        let output = self.plugboard_transpose(output);
 
         Ok(output)
+    }
+
+    fn plugboard_transpose(&self, input: char) -> char {
+        match self.plugboard {
+            Some(ref pb) if pb.contains_key(&input) => *pb.get(&input).unwrap(),
+            _ => input,
+        }
     }
 
     fn settings(&self) -> Vec<char> {
@@ -103,6 +119,8 @@ impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> Enigma for Ar
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::collections::HashMap;
+    use crate::reflectors::*;
     use crate::rotors::*;
 
     #[test]
@@ -112,6 +130,7 @@ mod test {
             RotorII::new('A', 'A'),
             RotorIII::new('A', 'A'),
             ReflectorB{},
+            None,
         );
 
         let input: Vec<char> = vec!['A', 'A', 'A', 'A', 'A'];
@@ -131,6 +150,7 @@ mod test {
             RotorII::new('A', 'A'),
             RotorIII::new('A', 'A'),
             ReflectorB{},
+            None,
         );
 
         let input: Vec<char> = vec!['E', 'N', 'I', 'G', 'M', 'A'];
@@ -150,6 +170,7 @@ mod test {
             RotorI::new('A', 'A'),
             RotorI::new('A', 'A'),
             ReflectorB{},
+            None,
         );
 
         let input: Vec<char> = vec!['A', 'A', 'A'];
@@ -169,6 +190,7 @@ mod test {
             RotorII::new('A', 'D'),
             RotorIII::new('A', 'U'),
             ReflectorB{},
+            None,
         );
 
         let input: Vec<char> = vec!['A', 'A', 'A', 'A', 'A'];
@@ -188,6 +210,7 @@ mod test {
             RotorII::new('A', 'O'),
             RotorIII::new('P', 'G'),
             ReflectorB{},
+            None,
         );
 
         let input: Vec<char> = vec!['A', 'D', 'V', 'A', 'N', 'C', 'E', 'M', 'I', 'N', 'S', 'K'];
@@ -207,6 +230,7 @@ mod test {
             RotorII::new('B', 'O'),
             RotorIII::new('B', 'G'),
             ReflectorB{},
+            None,
         );
 
         let input: Vec<char> = vec!['A', 'D', 'V', 'A', 'N', 'C', 'E', 'M', 'I', 'N', 'S', 'K'];
@@ -220,12 +244,61 @@ mod test {
     }
 
     #[test]
+    fn test_plugboard_input() {
+        let mut machine = ArmyEnigma::new(
+            RotorI::new('B', 'A'),
+            RotorI::new('B', 'A'),
+            RotorI::new('B', 'A'),
+            ReflectorB{},
+            plugboard! {
+                'F' => 'T',
+                'O' => 'B',
+                'G' => 'U'
+            },
+        );
+
+        let input: Vec<char> = vec!['F', 'O', 'G'];
+        let expected: Vec<char> = vec!['A', 'A', 'A'];
+        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+
+        assert_eq!(expected, output);
+
+        let expected_settings = vec!['A', 'A', 'D'];
+        assert_eq!(expected_settings, machine.settings());
+    }
+
+    #[test]
+    fn test_plugboard_output() {
+        let mut machine = ArmyEnigma::new(
+            RotorI::new('B', 'A'),
+            RotorI::new('B', 'A'),
+            RotorI::new('B', 'A'),
+            ReflectorB{},
+            plugboard! {
+                'T' => 'F',
+                'B' => 'O',
+                'U' => 'G'
+            },
+        );
+
+        let input: Vec<char> = vec!['A', 'A', 'A'];
+        let expected: Vec<char> = vec!['F', 'O', 'G'];
+        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+
+        assert_eq!(expected, output);
+
+        let expected_settings = vec!['A', 'A', 'D'];
+        assert_eq!(expected_settings, machine.settings());
+    }
+
+    #[test]
     fn test_ring_settings() {
         let mut machine = ArmyEnigma::new(
             RotorI::new('B', 'A'),
             RotorI::new('B', 'A'),
             RotorI::new('B', 'A'),
             ReflectorB{},
+            None,
         );
 
         let input: Vec<char> = vec!['A', 'A', 'A'];
@@ -245,6 +318,7 @@ mod test {
             RotorII::new('E', 'I'),
             RotorV::new('G', 'B'),
             ReflectorA{},
+            None,
         );
 
         let initial: Vec<char> = vec!['A', 'D', 'V', 'A', 'N', 'C', 'E', 'M', 'I', 'N', 'S', 'K'];
@@ -255,6 +329,7 @@ mod test {
             RotorII::new('E', 'I'),
             RotorV::new('G', 'B'),
             ReflectorA{},
+            None,
         );
 
         let decoded: Vec<char> = encoded.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
@@ -269,6 +344,7 @@ mod test {
             RotorII::new('E', 'I'),
             RotorV::new('G', 'B'),
             ReflectorA{},
+            None,
         );
 
         assert!(machine.keypress('É').is_err());
