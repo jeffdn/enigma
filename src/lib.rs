@@ -33,15 +33,12 @@ impl fmt::Display for EnigmaError {
 }
 
 fn _check_input(input: char) -> Result<char, EnigmaError> {
-    if !input.is_ascii() {
-        return Err(EnigmaError::NonAsciiCharacter(input));
-    } else if !input.is_alphabetic() {
-        return Err(EnigmaError::NonAlphabeticCharacter(input));
-    } else if !input.is_uppercase() {
-        return Err(EnigmaError::NonUppercaseCharacter(input));
+    match input {
+        c if !c.is_ascii() => Err(EnigmaError::NonAsciiCharacter(c)),
+        c if !c.is_alphabetic() => Err(EnigmaError::NonAlphabeticCharacter(c)),
+        c if !c.is_uppercase() => Err(EnigmaError::NonUppercaseCharacter(c)),
+        _ => Ok(input),
     }
-
-    Ok(input)
 }
 
 pub trait Enigma {
