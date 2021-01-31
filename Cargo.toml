@@ -1,5 +1,12 @@
+[workspace]
+members = [
+    ".",
+    "enigma-core",
+    "enigma-macros",
+]
+
 [package]
-name = "enigma-core"
+name = "enigma-cipher"
 version = "0.1.0"
 authors = ["Jeff Nettleton <jeffdn@gmail.com>"]
 edition = "2018"
@@ -10,4 +17,5 @@ readme = "README.md"
 license = "MIT"
 
 [dependencies]
-enigma-macros = { path = "../enigma-macros" }
+enigma-core = { path = "./enigma-core" }
+termion = "1"
