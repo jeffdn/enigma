@@ -13,6 +13,7 @@ pub type Plugboard = HashMap<char, char>;
 
 #[macro_export]
 macro_rules! plugboard {
+    () => {{ Some(|input| input) }};
     ( $( $left:expr => $right:expr ),* ) => {
         {
             let mut intermediate = HashMap::new();
@@ -29,7 +30,16 @@ macro_rules! plugboard {
                 intermediate.insert($left.clone(), $right.clone());
                 intermediate.insert($right.clone(), $left.clone());
             )*
-            Some(intermediate)
+
+            Some(|input| {
+                match input {
+                $(
+                    $left => $right,
+                    $right => $left,
+                )*
+                    _ => input,
+                }
+            })
         }
     };
 }
@@ -42,8 +52,9 @@ mod test {
     fn test_one() {
         let board = plugboard! { 'A' => 'E' }.unwrap();
 
-        assert_eq!(board.get(&'A'), Some(&'E'));
-        assert_eq!(board.get(&'E'), Some(&'A'));
+        assert_eq!(board('A'), 'E');
+        assert_eq!(board('E'), 'A');
+        assert_eq!(board('Z'), 'Z');
     }
 
     #[test]
@@ -54,12 +65,13 @@ mod test {
             'M' => 'G'
         }.unwrap();
 
-        assert_eq!(board.get(&'A'), Some(&'E'));
-        assert_eq!(board.get(&'E'), Some(&'A'));
-        assert_eq!(board.get(&'F'), Some(&'J'));
-        assert_eq!(board.get(&'J'), Some(&'F'));
-        assert_eq!(board.get(&'M'), Some(&'G'));
-        assert_eq!(board.get(&'G'), Some(&'M'));
+        assert_eq!(board('A'), 'E');
+        assert_eq!(board('E'), 'A');
+        assert_eq!(board('F'), 'J');
+        assert_eq!(board('J'), 'F');
+        assert_eq!(board('M'), 'G');
+        assert_eq!(board('G'), 'M');
+        assert_eq!(board('Z'), 'Z');
     }
 
     #[test]
@@ -81,6 +93,7 @@ mod test {
     }
 
     #[test]
+    #[allow(unreachable_patterns)]
     #[should_panic(expected = "'A' already wired to plugboard!")]
     fn test_left_already_wired() {
         let _board = plugboard! {
@@ -90,6 +103,7 @@ mod test {
     }
 
     #[test]
+    #[allow(unreachable_patterns)]
     #[should_panic(expected = "'F' already wired to plugboard!")]
     fn test_right_already_wired() {
         let _board = plugboard! {
