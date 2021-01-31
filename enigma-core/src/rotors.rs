@@ -7,7 +7,7 @@
 // file may not be copied, modified, or distributed except according to those
 // terms.
 
-use enigma_cipher_macros::RotorEncode;
+use enigma_macros::RotorEncode;
 
 fn _apply_offset(shifted: i8) -> char {
     if shifted > 90 {

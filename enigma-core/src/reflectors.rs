@@ -7,7 +7,7 @@
 // file may not be copied, modified, or distributed except according to those
 // terms.
 
-use enigma_cipher_macros::Reflector;
+use enigma_macros::Reflector;
 
 pub trait Reflector {
     fn transpose(&self, input: char) -> char;

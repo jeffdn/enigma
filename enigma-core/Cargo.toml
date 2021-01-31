@@ -1,14 +1,13 @@
 [package]
-name = "enigma-cipher"
+name = "enigma-core"
 version = "0.0.1"
 authors = ["Jeff Nettleton <jeffdn@gmail.com>"]
 edition = "2018"
 
 description = "An implementation of the legendary German Enigma cipher"
 repository = "https://gitlab.com/jeffdn/enigma-cipher"
-documentation = "https://docs.rs/enigma-cipher/"
 readme = "README.md"
 license = "MIT"
 
 [dependencies]
-enigma-cipher-macros = { path = "./enigma-cipher-macros" }
+enigma-macros = { path = "../enigma-macros" }
