@@ -58,8 +58,8 @@ pub struct ArmyEnigma<A, B, C, D, E> {
     plugboard: Option<E>,
 }
 
-impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector, E: Fn(char) -> char> ArmyEnigma<A, B, C, D, E> {
-    pub fn new(rotor1: A, rotor2: B, rotor3: C, reflector: D, plugboard: Option<E>) -> Self {
+impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> ArmyEnigma<A, B, C, D, plugboard::Plugboard> {
+    pub fn new(rotor1: A, rotor2: B, rotor3: C, reflector: D, plugboard: Option<plugboard::Plugboard>) -> Self {
         ArmyEnigma {
             rotor1: rotor1,
             rotor2: rotor2,
@@ -70,7 +70,7 @@ impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector, E: Fn(char) -
     }
 }
 
-impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector, E: Fn(char) -> char> Enigma for ArmyEnigma<A, B, C, D, E> {
+impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> Enigma for ArmyEnigma<A, B, C, D, plugboard::Plugboard> {
     fn keypress(&mut self, input: char) -> Result<char, EnigmaError> {
         if let Err(err) = _check_input(input) {
             return Err(err);
@@ -105,8 +105,8 @@ impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector, E: Fn(char) -
 
     fn plugboard_transpose(&self, input: char) -> char {
         match self.plugboard {
-            Some(ref pb) => pb(input),
-            _ => input,
+            Some(ref pb) => pb.transpose(input),
+            None => input,
         }
     }
 
@@ -119,6 +119,7 @@ impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector, E: Fn(char) -
 mod test {
     use super::*;
     use std::collections::HashMap;
+    use crate::plugboard::*;
     use crate::reflectors::*;
     use crate::rotors::*;
 
