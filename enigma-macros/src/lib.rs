@@ -83,6 +83,7 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
             fn new(ring_setting: char, init_position: char) -> Self {
                 Self {
                     ring_setting: ring_setting,
+                    init_position: init_position,
                     init_offset: (ring_setting as u8) - 65,
                     cur_offset: (init_position as u8) - 65,
                 }
@@ -134,6 +135,14 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
                     true => self.cur_offset + step - 25,
                     false => self.cur_offset + step,
                 }
+            }
+
+            fn ring_setting(&self) -> char {
+                self.ring_setting
+            }
+
+            fn init_position(&self) -> char {
+                self.init_position
             }
 
             fn position(&self) -> char {

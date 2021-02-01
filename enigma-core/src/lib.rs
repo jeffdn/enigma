@@ -45,6 +45,7 @@ fn _check_input(input: char) -> Result<char, EnigmaError> {
 }
 
 pub trait Enigma {
+    fn reset(&mut self);
     fn keypress(&mut self, input: char) -> Result<char, EnigmaError>;
     fn plugboard_transpose(&self, input: char) -> char;
     fn settings(&self) -> Vec<char>;
@@ -71,6 +72,12 @@ impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> ArmyEnigma<A,
 }
 
 impl<A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> Enigma for ArmyEnigma<A, B, C, D, plugboard::Plugboard> {
+    fn reset(&mut self) {
+        self.rotor1 = A::new(self.rotor1.ring_setting(), self.rotor1.init_position());
+        self.rotor2 = B::new(self.rotor2.ring_setting(), self.rotor2.init_position());
+        self.rotor3 = C::new(self.rotor3.ring_setting(), self.rotor3.init_position());
+    }
+
     fn keypress(&mut self, input: char) -> Result<char, EnigmaError> {
         if let Err(err) = _check_input(input) {
             return Err(err);
@@ -133,9 +140,9 @@ mod test {
             plugboard!{},
         );
 
-        let input: Vec<char> = vec!['A', 'A', 'A', 'A', 'A'];
-        let expected: Vec<char> = vec!['B', 'D', 'Z', 'G', 'O'];
-        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let input: String = "AAAAA".into();
+        let expected: String = "BDZGO".into();
+        let output: String = input.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(expected, output);
 
@@ -153,9 +160,9 @@ mod test {
             plugboard!{},
         );
 
-        let input: Vec<char> = vec!['E', 'N', 'I', 'G', 'M', 'A'];
-        let expected: Vec<char> = vec!['F', 'Q', 'G', 'A', 'H', 'W'];
-        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let input: String = "ENIGMA".into();
+        let expected: String = "FQGAHW".into();
+        let output: String = input.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(expected, output);
 
@@ -173,9 +180,9 @@ mod test {
             plugboard!{},
         );
 
-        let input: Vec<char> = vec!['A', 'A', 'A'];
-        let expected: Vec<char> = vec!['U', 'O', 'T'];
-        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let input: String = "AAA".into();
+        let expected: String = "UOT".into();
+        let output: String = input.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(expected, output);
 
@@ -193,9 +200,9 @@ mod test {
             plugboard!{},
         );
 
-        let input: Vec<char> = vec!['A', 'A', 'A', 'A', 'A'];
-        let expected: Vec<char> = vec!['E', 'Q', 'I', 'B', 'M'];
-        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let input: String = "AAAAA".into();
+        let expected: String = "EQIBM".into();
+        let output: String = input.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(expected, output);
 
@@ -213,9 +220,9 @@ mod test {
             plugboard!{},
         );
 
-        let input: Vec<char> = vec!['A', 'D', 'V', 'A', 'N', 'C', 'E', 'M', 'I', 'N', 'S', 'K'];
-        let expected: Vec<char> = vec!['P', 'X', 'B', 'U', 'Y', 'V', 'U', 'G', 'E', 'G', 'C', 'I'];
-        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let input: String = "ADVANCEMINSK".into();
+        let expected: String = "PXBUYVUGEGCI".into();
+        let output: String = input.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(expected, output);
 
@@ -233,9 +240,9 @@ mod test {
             plugboard!{},
         );
 
-        let input: Vec<char> = vec!['A', 'D', 'V', 'A', 'N', 'C', 'E', 'M', 'I', 'N', 'S', 'K'];
-        let expected: Vec<char> = vec!['Y', 'X', 'L', 'E', 'O', 'P', 'V', 'F', 'D', 'T', 'O', 'Y'];
-        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let input: String = "ADVANCEMINSK".into();
+        let expected: String = "YXLEOPVFDTOY".into();
+        let output: String = input.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(expected, output);
 
@@ -257,9 +264,9 @@ mod test {
             },
         );
 
-        let input: Vec<char> = vec!['F', 'O', 'G'];
-        let expected: Vec<char> = vec!['A', 'A', 'A'];
-        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let input: String = "FOG".into();
+        let expected: String = "AAA".into();
+        let output: String = input.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(expected, output);
 
@@ -281,9 +288,9 @@ mod test {
             },
         );
 
-        let input: Vec<char> = vec!['A', 'A', 'A'];
-        let expected: Vec<char> = vec!['F', 'O', 'G'];
-        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let input: String = "AAA".into();
+        let expected: String = "FOG".into();
+        let output: String = input.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(expected, output);
 
@@ -301,9 +308,9 @@ mod test {
             plugboard!{},
         );
 
-        let input: Vec<char> = vec!['A', 'A', 'A'];
-        let expected: Vec<char> = vec!['T', 'B', 'U'];
-        let output: Vec<char> = input.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let input: String = "AAA".into();
+        let expected: String = "TBU".into();
+        let output: String = input.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(expected, output);
 
@@ -321,8 +328,8 @@ mod test {
             plugboard!{},
         );
 
-        let initial: Vec<char> = vec!['A', 'D', 'V', 'A', 'N', 'C', 'E', 'M', 'I', 'N', 'S', 'K'];
-        let encoded: Vec<char> = initial.clone().into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let initial: String = "ADVANCEMINSK".into();
+        let encoded: String = initial.clone().chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         let mut machine = ArmyEnigma::new(
             RotorIV::new('L', 'F'),
@@ -332,7 +339,7 @@ mod test {
             plugboard!{},
         );
 
-        let decoded: Vec<char> = encoded.into_iter().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+        let decoded: String = encoded.chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
 
         assert_eq!(initial, decoded);
     }
@@ -356,5 +363,38 @@ mod test {
         assert_eq!(machine.keypress('e'), Err(EnigmaError::NonUppercaseCharacter('e')));
 
         assert_eq!(vec!['F', 'I', 'B'], machine.settings());
+    }
+
+    #[test]
+    fn test_reset() {
+        let mut machine = ArmyEnigma::new(
+            RotorI::new('G', 'F'),
+            RotorII::new('A', 'O'),
+            RotorIII::new('P', 'G'),
+            ReflectorB{},
+            plugboard!{},
+        );
+
+        let input: String = "ADV".into();
+        let expected: String = "PXB".into();
+        let output: String = input.clone().chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+
+        assert_eq!(expected, output);
+
+        let expected_settings = vec!['F', 'O', 'J'];
+        assert_eq!(expected_settings, machine.settings());
+
+        let output: String = input.clone().chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+
+        assert_ne!(expected, output);
+        assert_ne!(expected_settings, machine.settings());
+
+        machine.reset();
+        let output: String = input.clone().chars().map(|in_char| machine.keypress(in_char).unwrap()).collect();
+
+        assert_eq!(expected, output);
+
+        let expected_settings = vec!['F', 'O', 'J'];
+        assert_eq!(expected_settings, machine.settings());
     }
 }

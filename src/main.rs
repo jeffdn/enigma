@@ -7,9 +7,12 @@
 // file may not be copied, modified, or distributed except according to those
 // terms.
 
-mod editor;
+mod ui;
 
-use editor::Editor;
+use anyhow::Result;
+
+use ui::generic::UiAgent;
+use ui::tui::Tui;
 
 use std::collections::HashMap;
 
@@ -18,7 +21,7 @@ use enigma_core::reflectors;
 use enigma_core::rotors::{self, RotorEncode};
 use enigma_core::{ArmyEnigma, plugboard};
 
-fn main() {
+fn main() -> Result<()> {
     let mut machine = ArmyEnigma::new(
         rotors::RotorIII::new('G', 'E'),
         rotors::RotorII::new('E', 'H'),
@@ -30,7 +33,9 @@ fn main() {
             'T' => 'Z'
         },
     );
-    let mut editor = Editor::new(&mut machine);
 
-    editor.run();
+    let handle = Tui::new(&mut machine).unwrap();
+    handle.start()?;
+
+    Ok(())
 }

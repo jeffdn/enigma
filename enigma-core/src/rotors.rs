@@ -26,6 +26,8 @@ pub trait RotorEncode {
     fn transpose_in(&self, input: char) -> char;
     fn transpose_out(&self, input: char) -> char;
     fn advance(&mut self);
+    fn ring_setting(&self) -> char;
+    fn init_position(&self) -> char;
     fn position(&self) -> char;
     fn get_offset(&self) -> i8;
     fn at_notch(&self) -> bool;
@@ -36,6 +38,7 @@ pub trait RotorEncode {
 #[notches(Q)]
 pub struct RotorI {
     ring_setting: char,
+    init_position: char,
     init_offset: u8,
     cur_offset: u8,
 }
@@ -45,6 +48,7 @@ pub struct RotorI {
 #[notches(E)]
 pub struct RotorII {
     ring_setting: char,
+    init_position: char,
     init_offset: u8,
     cur_offset: u8,
 }
@@ -54,6 +58,7 @@ pub struct RotorII {
 #[notches(V)]
 pub struct RotorIII {
     ring_setting: char,
+    init_position: char,
     init_offset: u8,
     cur_offset: u8,
 }
@@ -63,6 +68,7 @@ pub struct RotorIII {
 #[notches(J)]
 pub struct RotorIV {
     ring_setting: char,
+    init_position: char,
     init_offset: u8,
     cur_offset: u8,
 }
@@ -72,6 +78,7 @@ pub struct RotorIV {
 #[notches(Z)]
 pub struct RotorV {
     ring_setting: char,
+    init_position: char,
     init_offset: u8,
     cur_offset: u8,
 }
