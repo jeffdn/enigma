@@ -14,8 +14,8 @@ use proc_macro2;
 use quote::quote;
 use syn;
 
-fn check_keyspace(key_tokens: &Vec<char>) {
-    let keyspace: HashSet<char> = HashSet::from_iter(key_tokens.iter().map(|c| *c));
+fn check_keyspace(key_tokens: &String) {
+    let keyspace: HashSet<char> = HashSet::from_iter(key_tokens.chars().map(|c| c));
     let expected: HashSet<char> = HashSet::from_iter(String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZ").chars());
     assert_eq!(expected, keyspace, "Expected 26 unique characters in #[key_ordering(...)]");
 }
@@ -31,11 +31,10 @@ fn generate_key_mappings(key_ordering: String) -> (proc_macro2::TokenStream, pro
     let mut transpose_in: proc_macro2::TokenStream = quote!();
     let mut transpose_out: proc_macro2::TokenStream = quote!();
 
-    let key_tokens: Vec<char> = key_ordering.chars().collect();
-    check_keyspace(&key_tokens);
+    check_keyspace(&key_ordering);
 
-    for (i, ref x) in key_tokens.iter().enumerate() {
-        let mapped_char = ((i + 65) as u8) as char;
+    for (ref x, i) in key_ordering.chars().zip(65..=90) {
+        let mapped_char = (i as u8) as char;
         transpose_in.extend(quote! {
             #mapped_char => #x,
         });

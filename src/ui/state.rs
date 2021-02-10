@@ -14,15 +14,28 @@ pub struct MachineState {
 }
 
 impl MachineState {
-    pub fn new(rotor_positions: &Vec<char>) -> Self {
+    pub fn new(rotor_positions: &[char]) -> Self {
         Self {
-            machine_state: rotor_positions.iter().map(|x| format!(" {}", *x)).collect(),
+            machine_state: MachineState::build_rotor_string(rotor_positions),
             input_state: "".into(),
             output_state: "".into(),
         }
     }
 
-    pub fn update_rotors(&mut self, rotor_positions: &Vec<char>) {
-        self.machine_state = rotor_positions.iter().map(|x| format!(" {}", *x)).collect();
+    pub fn update(&mut self, input: char, output: char, rotor_positions: &[char]) {
+        self.machine_state = MachineState::build_rotor_string(rotor_positions);
+
+        self.input_state.push_str(&format!("{}", input));
+        self.output_state.push_str(&format!("{}", output));
+
+        let raw_chars: Vec<char> = self.input_state.chars().filter(|x| *x != ' ').collect();
+        if raw_chars.len() % 5 == 0 {
+            self.input_state.push_str(" ");
+            self.output_state.push_str(" ");
+        }
+    }
+
+    fn build_rotor_string(rotor_positions: &[char]) -> String {
+        rotor_positions.iter().map(|x| format!(" {}", *x)).collect()
     }
 }

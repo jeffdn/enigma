@@ -25,7 +25,7 @@ use tui::Terminal;
 use crate::ui::generic::{ApplicationExitReason, UiAgent};
 use crate::ui::state::MachineState;
 use enigma_core::reflectors::Reflector;
-use enigma_core::rotors::{RotorEncode};
+use enigma_core::rotors::RotorEncode;
 use enigma_core::{ArmyEnigma, Enigma, plugboard};
 
 pub struct Tui<'a, A, B, C, D> {
@@ -48,8 +48,8 @@ impl<'a, A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> Tui<'a, A
 
         Ok(
             Tui {
-                machine: machine,
-                terminal: terminal,
+                machine,
+                terminal,
             }
         )
     }
@@ -111,16 +111,7 @@ impl<'a, A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> UiAgent f
                             };
 
                             let o = self.machine.keypress(i).unwrap();
-                            state.input_state.push_str(&format!("{}", i));
-                            state.output_state.push_str(&format!("{}", o));
-
-                            let raw_chars: Vec<char> = state.input_state.chars().filter(|x| *x != ' ').collect();
-                            if raw_chars.len() % 5 == 0 {
-                                state.input_state.push_str(" ");
-                                state.output_state.push_str(" ");
-                            }
-
-                            state.update_rotors(&self.machine.settings());
+                            state.update(i, o, &self.machine.settings());
                         },
                         _ => {},
                     },
@@ -195,7 +186,7 @@ fn draw_text<K: Backend>(
                 .add_modifier(Modifier::BOLD),
         ),
     )];
-    let paragraph = Paragraph::new(text).block(block).wrap(Wrap { trim: false });
+    let paragraph = Paragraph::new(text).block(block).wrap(Wrap { trim: true });
     f.render_widget(paragraph, area);
 }
 
