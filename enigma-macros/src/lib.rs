@@ -33,13 +33,12 @@ fn generate_key_mappings(key_ordering: String) -> (proc_macro2::TokenStream, pro
 
     check_keyspace(&key_ordering);
 
-    for (ref x, i) in key_ordering.chars().zip(65..=90) {
-        let mapped_char = (i as u8) as char;
+    for (ref ordering_char, mapped_char) in key_ordering.chars().zip('A'..='Z') {
         transpose_in.extend(quote! {
-            #mapped_char => #x,
+            #mapped_char => #ordering_char,
         });
         transpose_out.extend(quote! {
-            #x => #mapped_char,
+            #ordering_char => #mapped_char,
         });
     }
 
