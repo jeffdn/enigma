@@ -15,8 +15,8 @@ use quote::quote;
 use syn;
 
 fn check_keyspace(key_tokens: &String) {
-    let keyspace: HashSet<char> = HashSet::from_iter(key_tokens.chars().map(|c| c));
-    let expected: HashSet<char> = HashSet::from_iter(String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZ").chars());
+    let keyspace: HashSet<char> = HashSet::from_iter(key_tokens.chars());
+    let expected: HashSet<char> = HashSet::from_iter('A'..='Z');
     assert_eq!(expected, keyspace, "Expected 26 unique characters in #[key_ordering(...)]");
 }
 
@@ -33,7 +33,7 @@ fn generate_key_mappings(key_ordering: String) -> (proc_macro2::TokenStream, pro
 
     check_keyspace(&key_ordering);
 
-    for (ref ordering_char, mapped_char) in key_ordering.chars().zip('A'..='Z') {
+    for (ordering_char, mapped_char) in key_ordering.chars().zip('A'..='Z') {
         transpose_in.extend(quote! {
             #mapped_char => #ordering_char,
         });
@@ -195,4 +195,29 @@ fn impl_reflector(ast: &syn::DeriveInput) -> TokenStream {
     };
 
     gen.into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::check_keyspace;
+
+    #[test]
+    #[should_panic(expected = "Expected 26 unique characters in #[key_ordering(...)]")]
+    fn test_check_keyspace_too_short() {
+        let input: String = ('A'..='M').collect();
+        check_keyspace(&input);
+    }
+
+    #[test]
+    #[should_panic(expected = "Expected 26 unique characters in #[key_ordering(...)]")]
+    fn test_check_keyspace_duplicate() {
+        let mut input: String = ('A'..='Y').collect();
+        input.push('Y');
+
+        // It's the right length...
+        assert_eq!(input.len(), 26);
+
+        // But has duplicates!
+        check_keyspace(&input);
+    }
 }
