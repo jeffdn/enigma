@@ -13,8 +13,8 @@ use quote::quote;
 use syn;
 
 fn check_keyspace(key_tokens: &String) {
-    let mut keyspace: Vec<char> = key_tokens.chars().collect::<Vec<char>>();
-    let mut expected: Vec<char> = ('A'..='Z').collect::<Vec<char>>();
+    let mut keyspace: Vec<char> = key_tokens.chars().collect();
+    let mut expected: Vec<char> = ('A'..='Z').collect();
 
     expected.sort();
     keyspace.sort();
