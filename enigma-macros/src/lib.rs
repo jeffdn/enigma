@@ -7,16 +7,18 @@
 // file may not be copied, modified, or distributed except according to those
 // terms.
 
-use std::collections::HashSet;
-use std::iter::FromIterator;
 use proc_macro::TokenStream;
 use proc_macro2;
 use quote::quote;
 use syn;
 
 fn check_keyspace(key_tokens: &String) {
-    let keyspace: HashSet<char> = HashSet::from_iter(key_tokens.chars());
-    let expected: HashSet<char> = HashSet::from_iter('A'..='Z');
+    let mut keyspace: Vec<char> = key_tokens.chars().collect::<Vec<char>>();
+    let mut expected: Vec<char> = ('A'..='Z').collect::<Vec<char>>();
+
+    expected.sort();
+    keyspace.sort();
+
     assert_eq!(expected, keyspace, "Expected 26 unique characters in #[key_ordering(...)]");
 }
 
@@ -211,11 +213,8 @@ mod tests {
     #[test]
     #[should_panic(expected = "Expected 26 unique characters in #[key_ordering(...)]")]
     fn test_check_keyspace_duplicate() {
-        let mut input: String = ('A'..='Y').collect();
-        input.push('Y');
-
-        // It's the right length...
-        assert_eq!(input.len(), 26);
+        let mut input: String = ('A'..='Z').collect();
+        input.push('Z');
 
         // But has duplicates!
         check_keyspace(&input);
