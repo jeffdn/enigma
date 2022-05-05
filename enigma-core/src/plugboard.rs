@@ -78,13 +78,13 @@ macro_rules! plugboard {
             $(
                 match ($left, $right) {
                     ('A'..='Z', 'A'..='Z') => {},
-                    ('A'..='Z', _)         => panic!(format!("{:?} is not a valid character, must be A-Z", $right)),
-                    (_, 'A'..='Z')         => panic!(format!("{:?} is not a valid character, must be A-Z", $left)),
-                    (_, _)                 => panic!(format!("Neither {:?} nor {:?} are valid characters, must be A-Z", $left, $right)),
+                    ('A'..='Z', _)         => panic!("{:?} is not a valid character, must be A-Z", $right),
+                    (_, 'A'..='Z')         => panic!("{:?} is not a valid character, must be A-Z", $left),
+                    (_, _)                 => panic!("Neither {:?} nor {:?} are valid characters, must be A-Z", $left, $right),
                 };
 
-                assert!(!intermediate.contains_key(&$left), format!("{:?} already wired to plugboard!", $left));
-                assert!(!intermediate.contains_key(&$right), format!("{:?} already wired to plugboard!", $right));
+                assert!(!intermediate.contains_key(&$left), "{:?} already wired to plugboard!", $left);
+                assert!(!intermediate.contains_key(&$right), "{:?} already wired to plugboard!", $right);
                 intermediate.insert($left.clone(), $right.clone());
                 intermediate.insert($right.clone(), $left.clone());
             )*
