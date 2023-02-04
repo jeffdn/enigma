@@ -17,12 +17,16 @@ pub enum PlugboardError {
     CharacterAlreadyWired(char),
 }
 
-impl Error for PlugboardError { }
+impl Error for PlugboardError {}
 impl fmt::Display for PlugboardError {
-    fn fmt(&self,  f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            PlugboardError::InvalidCharacter((l, r)) => write!(f, "'{}' or '{}' is not an uppercase ASCII letter", l, r),
-            PlugboardError::CharacterAlreadyWired(c) => write!(f, "'{}' already wired to the board", c),
+            PlugboardError::InvalidCharacter((l, r)) => {
+                write!(f, "'{l}' or '{r}' is not an uppercase ASCII letter")
+            }
+            PlugboardError::CharacterAlreadyWired(c) => {
+                write!(f, "'{c}' already wired to the board")
+            }
         }
     }
 }
@@ -31,15 +35,15 @@ impl fmt::Display for PlugboardError {
 pub struct Plugboard(HashMap<char, char>);
 
 impl Plugboard {
-    pub fn new(pairs: &Vec<(char, char)>) -> Result<Self, PlugboardError> {
+    pub fn new(pairs: &[(char, char)]) -> Result<Self, PlugboardError> {
         let mut intermediate: HashMap<char, char> = HashMap::new();
 
-        for (left, right) in pairs.clone().into_iter() {
+        for (left, right) in pairs.iter().copied() {
             match (left, right) {
-                ('A'..='Z', 'A'..='Z') => {},
-                ('A'..='Z', _)         => return Err(PlugboardError::InvalidCharacter((left, right))),
-                (_, 'A'..='Z')         => return Err(PlugboardError::InvalidCharacter((left, right))),
-                (_, _)                 => return Err(PlugboardError::InvalidCharacter((left, right))),
+                ('A'..='Z', 'A'..='Z') => {}
+                ('A'..='Z', _) => return Err(PlugboardError::InvalidCharacter((left, right))),
+                (_, 'A'..='Z') => return Err(PlugboardError::InvalidCharacter((left, right))),
+                (_, _) => return Err(PlugboardError::InvalidCharacter((left, right))),
             };
 
             if intermediate.contains_key(&left) {
@@ -50,8 +54,8 @@ impl Plugboard {
                 return Err(PlugboardError::CharacterAlreadyWired(right));
             }
 
-            intermediate.insert(left.clone(), right.clone());
-            intermediate.insert(right.clone(), left.clone());
+            intermediate.insert(left, right);
+            intermediate.insert(right, left);
         }
 
         Ok(Self(intermediate))
@@ -63,7 +67,7 @@ impl Plugboard {
 
     pub fn transpose(&self, input: char) -> char {
         match self.0.get(&input) {
-            Some(ref c) => **c,
+            Some(c) => *c,
             None => input,
         }
     }
@@ -113,7 +117,8 @@ mod test {
             'A' => 'E',
             'F' => 'J',
             'M' => 'G'
-        }.unwrap();
+        }
+        .unwrap();
 
         assert_eq!(board.transpose('A'), 'E');
         assert_eq!(board.transpose('E'), 'A');

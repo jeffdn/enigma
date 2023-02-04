@@ -11,11 +11,11 @@ use enigma_macros::RotorEncode;
 
 fn _apply_offset(shifted: i8) -> char {
     if shifted > 90 {
-        return ((shifted - 26) as u8) as char;
+        ((shifted - 26) as u8) as char
     } else if shifted < 65 {
-        return ((shifted + 26) as u8) as char;
+        ((shifted + 26) as u8) as char
     } else {
-        return (shifted as u8) as char;
+        (shifted as u8) as char
     }
 }
 

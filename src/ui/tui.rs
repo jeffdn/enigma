@@ -19,14 +19,14 @@ use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::terminal::Frame;
 use tui::text::{Span, Spans};
-use tui::widgets::{Block, Borders, BorderType, Paragraph, Wrap};
+use tui::widgets::{Block, BorderType, Borders, Paragraph, Wrap};
 use tui::Terminal;
 
 use crate::ui::generic::{ApplicationExitReason, UiAgent};
 use crate::ui::state::MachineState;
 use enigma_core::reflectors::Reflector;
 use enigma_core::rotors::RotorEncode;
-use enigma_core::{ArmyEnigma, Enigma, plugboard};
+use enigma_core::{plugboard, ArmyEnigma, Enigma};
 
 pub struct Tui<'a, A, B, C, D> {
     machine: &'a mut ArmyEnigma<A, B, C, D, plugboard::Plugboard>,
@@ -34,33 +34,28 @@ pub struct Tui<'a, A, B, C, D> {
 }
 
 impl<'a, A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> Tui<'a, A, B, C, D> {
-    pub fn new(
-        machine: &'a mut ArmyEnigma<A, B, C, D, plugboard::Plugboard>,
-    ) -> Result<Self> {
+    pub fn new(machine: &'a mut ArmyEnigma<A, B, C, D, plugboard::Plugboard>) -> Result<Self> {
         let mut stdout = io::stdout();
 
         execute!(stdout, event::EnableMouseCapture)?;
 
         let backend = CrosstermBackend::new(stdout);
-        let mut terminal = Terminal::new(backend).with_context(|| "Failed to initialize Crossterm backend")?;
+        let mut terminal =
+            Terminal::new(backend).with_context(|| "Failed to initialize Crossterm backend")?;
         crossterm::terminal::enable_raw_mode()?;
         terminal.hide_cursor()?;
 
-        Ok(
-            Tui {
-                machine,
-                terminal,
-            }
-        )
+        Ok(Tui { machine, terminal })
     }
 }
 
-impl<'a, A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> UiAgent for Tui<'a, A, B, C, D> {
+impl<'a, A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> UiAgent
+    for Tui<'a, A, B, C, D>
+{
     fn start(mut self) -> Result<ApplicationExitReason> {
         let mut state = MachineState::new(&self.machine.settings());
         let (tx, rx) = mpsc::channel();
         let tick_rate = Duration::from_millis(200);
-
 
         thread::spawn(move || {
             let mut last_tick = Instant::now();
@@ -69,17 +64,17 @@ impl<'a, A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> UiAgent f
                 if event::poll(tick_rate - last_tick.elapsed()).unwrap() {
                     let event = event::read().unwrap();
                     if let Event::Key(key) = event {
-                        if let Err(_) = tx.send(Interrupt::KeyPressed(key)) {
+                        if tx.send(Interrupt::KeyPressed(key)).is_err() {
                             return;
                         }
                     } else if let Event::Mouse(mouse) = event {
-                        if let Err(_) = tx.send(Interrupt::MouseEvent(mouse)) {
+                        if tx.send(Interrupt::MouseEvent(mouse)).is_err() {
                             return;
                         }
                     }
                 }
                 if last_tick.elapsed() > tick_rate {
-                    if let Err(_) = tx.send(Interrupt::IntervalElapsed) {
+                    if tx.send(Interrupt::IntervalElapsed).is_err() {
                         return;
                     }
                     last_tick = Instant::now();
@@ -92,17 +87,17 @@ impl<'a, A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> UiAgent f
         })?;
 
         loop {
-            match rx.recv()? {
-                Interrupt::KeyPressed(event) => match event.code {
+            if let Interrupt::KeyPressed(event) = rx.recv()? {
+                match event.code {
                     // exit
                     KeyCode::Char('c') if event.modifiers == KeyModifiers::CONTROL => {
                         return Ok(ApplicationExitReason::UserExit);
-                    },
+                    }
                     // reset
                     KeyCode::Char('r') if event.modifiers == KeyModifiers::CONTROL => {
                         self.machine.reset();
                         state = MachineState::new(&self.machine.settings());
-                    },
+                    }
                     KeyCode::Char(c) => match c {
                         'A'..='Z' | 'a'..='z' => {
                             let i = match c.is_lowercase() {
@@ -112,28 +107,21 @@ impl<'a, A: RotorEncode, B: RotorEncode, C: RotorEncode, D: Reflector> UiAgent f
 
                             let o = self.machine.keypress(i).unwrap();
                             state.update(i, o, &self.machine.settings());
-                        },
-                        _ => {},
+                        }
+                        _ => {}
                     },
-                    _ => {},
-                },
-                Interrupt::MouseEvent(event) => match event {
-                    _ => {},
+                    _ => {}
                 }
-                _ => {},
             }
 
-            self.terminal.draw(|mut f| {
-                draw_layout_and_subcomponents(&mut f, &state);
+            self.terminal.draw(|f| {
+                draw_layout_and_subcomponents(f, &state);
             })?
         }
     }
 }
 
-fn draw_layout_and_subcomponents<K: Backend>(
-    f: &mut Frame<K>,
-    state: &MachineState,
-) {
+fn draw_layout_and_subcomponents<K: Backend>(f: &mut Frame<K>, state: &MachineState) {
     let total_size = f.size();
 
     if let [left_plane, right_plane] = Layout::default()
@@ -146,7 +134,12 @@ fn draw_layout_and_subcomponents<K: Backend>(
             .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)].as_ref())
             .split(right_plane)[..]
         {
-            draw_text(f, "Machine setup".into(), Some(&state.machine_state), left_plane);
+            draw_text(
+                f,
+                "Machine setup".into(),
+                Some(&state.machine_state),
+                left_plane,
+            );
             draw_text(f, "Input".into(), Some(&state.input_state), input_plane);
             draw_text(f, "Output".into(), Some(&state.output_state), output_plane);
         } else {
@@ -169,23 +162,21 @@ fn draw_text<K: Backend>(
         .border_style(
             Style::default()
                 .fg(Color::White)
-                .add_modifier(Modifier::BOLD)
+                .add_modifier(Modifier::BOLD),
         )
         .border_type(BorderType::Rounded)
         .style(
             Style::default()
                 .fg(Color::White)
-                .add_modifier(Modifier::BOLD)
+                .add_modifier(Modifier::BOLD),
         );
     let default_string = String::new();
-    let text = vec![Spans::from(
-        Span::styled(
-            format!("\n {} ", text_to_write.unwrap_or(&default_string)),
-            Style::default()
-                .fg(Color::LightBlue)
-                .add_modifier(Modifier::BOLD),
-        ),
-    )];
+    let text = vec![Spans::from(Span::styled(
+        format!("\n {} ", text_to_write.unwrap_or(&default_string)),
+        Style::default()
+            .fg(Color::LightBlue)
+            .add_modifier(Modifier::BOLD),
+    ))];
     let paragraph = Paragraph::new(text).block(block).wrap(Wrap { trim: true });
     f.render_widget(paragraph, area);
 }

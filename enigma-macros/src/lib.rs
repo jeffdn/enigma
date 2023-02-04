@@ -8,18 +8,19 @@
 // terms.
 
 use proc_macro::TokenStream;
-use proc_macro2;
 use quote::quote;
-use syn;
 
-fn check_keyspace(key_tokens: &String) {
+fn check_keyspace(key_tokens: &str) {
     let mut keyspace: Vec<char> = key_tokens.chars().collect();
     let mut expected: Vec<char> = ('A'..='Z').collect();
 
     expected.sort();
     keyspace.sort();
 
-    assert_eq!(expected, keyspace, "Expected 26 unique characters in #[key_ordering(...)]");
+    assert_eq!(
+        expected, keyspace,
+        "Expected 26 unique characters in #[key_ordering(...)]"
+    );
 }
 
 fn extract_attribute(tokens: &proc_macro2::TokenStream) -> String {
@@ -29,7 +30,9 @@ fn extract_attribute(tokens: &proc_macro2::TokenStream) -> String {
     attr_str.trim_matches(to_trim).into()
 }
 
-fn generate_key_mappings(key_ordering: String) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
+fn generate_key_mappings(
+    key_ordering: String,
+) -> (proc_macro2::TokenStream, proc_macro2::TokenStream) {
     let mut transpose_in: proc_macro2::TokenStream = quote!();
     let mut transpose_out: proc_macro2::TokenStream = quote!();
 
@@ -64,7 +67,7 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
         match &*attr_name {
             "key_ordering" => key_ordering = extract_attribute(&attr.tokens),
             "notches" => notch_tokens = extract_attribute(&attr.tokens),
-            _ => {},
+            _ => {}
         };
     }
 
@@ -90,7 +93,7 @@ fn impl_rotor_encode(ast: &syn::DeriveInput) -> TokenStream {
             }
 
             fn _shift_input(&self, input: char) -> char {
-                let offset: i8 = self.get_offset() * -1;
+                let offset: i8 = -self.get_offset();
                 let input_val = input as i8;
 
                 _apply_offset(input_val + offset)
@@ -177,10 +180,9 @@ fn impl_reflector(ast: &syn::DeriveInput) -> TokenStream {
 
     for attr in ast.attrs.iter() {
         let attr_name = attr.path.get_ident().unwrap().to_string();
-        match &*attr_name {
-            "key_ordering" => key_ordering = extract_attribute(&attr.tokens),
-            _ => {},
-        };
+        if &*attr_name == "key_ordering" {
+            key_ordering = extract_attribute(&attr.tokens)
+        }
     }
 
     let (transpose, _) = generate_key_mappings(key_ordering);
